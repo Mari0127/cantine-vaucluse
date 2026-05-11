@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaspillage Cantine - Vaucluse</title>
+    <style>
+        /* CSS : Le design de la page */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9; /* Vert très clair */
+            color: #2e7d32; /* Vert foncé */
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; font-size: 1.5rem; }
+        p { font-size: 0.9rem; color: #666; }
+
+        .poubelle {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        label { font-weight: bold; flex: 1; }
+
+        input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #388e3c; }
+
+        .resultat-box {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border-left: 5px solid #4caf50;
+            border-radius: 5px;
+        }
+
+        #resultat { font-size: 1.1rem; font-weight: bold; margin: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Suivi du Gaspillage ODD</h1>
+    <p>Collège du Vaucluse (700 demi-pensionnaires)</p>
+    <hr>
+
+    <div class="poubelle">
+        <label>Alimentaire (tri) :</label>
+        <input type="number" id="alimentaire" value="0" step="0.1"> kg
+    </div>
+
+    <div class="poubelle">
+        <label>Serviettes papier :</label>
+        <input type="number" id="serviettes" value="0" step="0.1"> kg
+    </div>
+
+    <div class="poubelle">
+        <label>Emballages :</label>
+        <input type="number" id="emballages" value="0" step="0.1"> kg
+    </div>
+
+    <div class="poubelle">
+        <label>Fruits entamés :</label>
+        <input type="number" id="fruits" value="0" step="0.1"> kg
+    </div>
+
+    <div class="poubelle">
+        <label>Pain :</label>
+        <input type="number" id="pain" value="0" step="0.1"> kg
+    </div>
+
+    <button onclick="calculerTotal()">Calculer l'impact du jour</button>
+
+    <div class="resultat-box">
+        <p id="resultat">En attente des mesures...</p>
+    </div>
+</div>
+
+<script>
+    // JavaScript : La logique de calcul
+    function calculerTotal() {
+        // Récupération des valeurs saisies
+        let alim = parseFloat(document.getElementById('alimentaire').value) || 0;
+        let serv = parseFloat(document.getElementById('serviettes').value) || 0;
+        let emb = parseFloat(document.getElementById('emballages').value) || 0;
+        let fru = parseFloat(document.getElementById('fruits').value) || 0;
+        let p = parseFloat(document.getElementById('pain').value) || 0;
+
+        // Calculs
+        let total = alim + serv + emb + fru + p;
+        let parEleve = total / 700;
+
+        // Affichage du texte
+        let message = "Total gaspillé : " + total.toFixed(2) + " kg<br>";
+        message += "Moyenne : " + (parEleve * 1000).toFixed(0) + " grammes par élève.";
+
+        document.getElementById('resultat').innerHTML = message;
+    }
+</script>
+
+</body>
+</html>
