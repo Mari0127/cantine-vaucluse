@@ -3,66 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Éco-Délégués - Vaucluse</title>
+    <title>Suivi Hebdomadaire - Cantine Vaucluse</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; justify-content: center; padding: 20px; }
-        .container { background-color: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
-        h1 { text-align: center; color: #2e7d32; }
-        .poubelle { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        input { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; color: white; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        h1, h2 { text-align: center; color: #2e7d32; }
+        .poubelle { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; color: white; margin-top: 10px; font-weight: bold; }
         .btn-calcul { background-color: #4caf50; }
-        .btn-save { background-color: #2196F3; }
-        .resultat-box { margin-top: 20px; padding: 15px; background-color: #f1f8e9; border-left: 5px solid #4caf50; }
+        .btn-reset { background-color: #e53935; margin-top: 20px; font-size: 0.8rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9rem; }
+        th { background-color: #4caf50; color: white; }
+        .total-semaine { margin-top: 15px; font-weight: bold; color: #1b5e20; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>📊 Suivi du Gaspillage</h1>
-    <p style="text-align:center;"><strong>Espace Éco-Délégués</strong><br>Collège du Vaucluse</p>
+    <p style="text-align:center;"><strong>Espace Éco-Délégués</strong></p>
     
     <div class="poubelle">
-        <label>Ton prénom :</label>
-        <input type="text" id="prenom" placeholder="Prénom">
-    </div>
-    
-    <hr>
-
-    <div class="poubelle"><label>Alimentaire :</label><input type="number" id="alimentaire" value="0"> kg</div>
-    <div class="poubelle"><label>Serviettes :</label><input type="number" id="serviettes" value="0"> kg</div>
-    <div class="poubelle"><label>Emballages :</label><input type="number" id="emballages" value="0"> kg</div>
-    <div class="poubelle"><label>Fruits :</label><input type="number" id="fruits" value="0"> kg</div>
-    <div class="poubelle"><label>Pain :</label><input type="number" id="pain" value="0"> kg</div>
-
-    <button class="btn-calcul" onclick="calculerTotal()">Calculer l'impact du jour</button>
-
-    <div class="resultat-box">
-        <p id="resultat">En attente des mesures...</p>
+        <label>Jour de la semaine :</label>
+        <select id="jour">
+            <option value="Lundi">Lundi</option>
+            <option value="Mardi">Mardi</option>
+            <option value="Jeudi">Jeudi</option>
+            <option value="Vendredi">Vendredi</option>
+        </select>
     </div>
 
-    <button class="btn-save" onclick="enregistrerDonnees()">💾 Enregistrer dans le tableau</button>
+    <div class="poubelle"><label>Alimentaire (kg) :</label><input type="number" id="alim" value="0" step="0.1"></div>
+    <div class="poubelle"><label>Pain (kg) :</label><input type="number" id="pain" value="0" step="0.1"></div>
+    <div class="poubelle"><label>Fruits (kg) :</label><input type="number" id="fruits" value="0" step="0.1"></div>
+
+    <button class="btn-calcul" onclick="enregistrerJour()">💾 Enregistrer et Calculer</button>
+
+    <h2>Historique de la Semaine</h2>
+    <table id="tableauRecap">
+        <thead>
+            <tr>
+                <th>Jour</th>
+                <th>Alim.</th>
+                <th>Pain</th>
+                <th>Fruits</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="corpsTableau">
+            </tbody>
+    </table>
+
+    <div id="totalSemaine" class="total-semaine">Total semaine : 0 kg</div>
+
+    <button class="btn-reset" onclick="effacerTout()">🗑️ Effacer la semaine (Remise à zéro)</button>
 </div>
 
 <script>
-    function calculerTotal() {
-        let prenom = document.getElementById('prenom').value || "L'éco-délégué";
-        let alim = parseFloat(document.getElementById('alimentaire').value) || 0;
-        let serv = parseFloat(document.getElementById('serviettes').value) || 0;
-        let emb = parseFloat(document.getElementById('emballages').value) || 0;
-        let fru = parseFloat(document.getElementById('fruits').value) || 0;
-        let p = parseFloat(document.getElementById('pain').value) || 0;
+    // Charger les données au démarrage
+    window.onload = afficherDonnees;
 
-        let total = alim + serv + emb + fru + p;
-        let parEleve = (total / 700) * 1000;
+    function enregistrerJour() {
+        let jour = document.getElementById('jour').value;
+        let alim = parseFloat(document.getElementById('alim').value) || 0;
+        let pain = parseFloat(document.getElementById('pain').value) || 0;
+        let fruits = parseFloat(document.getElementById('fruits').value) || 0;
+        let totalJour = alim + pain + fruits;
 
-        document.getElementById('resultat').innerHTML = 
-            "Bravo " + prenom + " !<br>Total : <strong>" + total.toFixed(2) + " kg</strong><br>" +
-            "Soit " + parEleve.toFixed(0) + "g par élève.";
+        // Créer un objet pour ce jour
+        let donneesJour = { alim, pain, fruits, totalJour };
+
+        // Récupérer la semaine déjà stockée ou créer une nouvelle
+        let semaine = JSON.parse(localStorage.getItem('gaspillageSemaine')) || {};
+        
+        // Ajouter les nouvelles données
+        semaine[jour] = donneesJour;
+
+        // Sauvegarder dans le navigateur
+        localStorage.setItem('gaspillageSemaine', JSON.stringify(semaine));
+
+        afficherDonnees();
     }
 
-    function enregistrerDonnees() {
-        alert("Action réussie ! (Pour que l'enregistrement fonctionne réellement, il faudra lier un Google Form plus tard).");
+    function afficherDonnees() {
+        let semaine = JSON.parse(localStorage.getItem('gaspillageSemaine')) || {};
+        let corps = document.getElementById('corpsTableau');
+        let totalGeneral = 0;
+        corps.innerHTML = "";
+
+        let jours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
+
+        jours.forEach(j => {
+            if (semaine[j]) {
+                let d = semaine[j];
+                totalGeneral += d.totalJour;
+                corps.innerHTML += `<tr>
+                    <td>${j}</td>
+                    <td>${d.alim}</td>
+                    <td>${d.pain}</td>
+                    <td>${d.fruits}</td>
+                    <td><strong>${d.totalJour.toFixed(1)}</strong></td>
+                </tr>`;
+            }
+        });
+
+        document.getElementById('totalSemaine').innerHTML = "Total accumulé cette semaine : " + totalGeneral.toFixed(1) + " kg";
+    }
+
+    function effacerTout() {
+        if (confirm("Voulez-vous vraiment effacer toutes les données de la semaine ?")) {
+            localStorage.removeItem('gaspillageSemaine');
+            afficherDonnees();
+        }
     }
 </script>
 
