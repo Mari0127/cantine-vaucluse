@@ -3,130 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaspillage Cantine - Vaucluse</title>
+    <title>Espace Éco-Délégués - Vaucluse</title>
     <style>
-        /* CSS : Le design de la page */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e8f5e9; /* Vert très clair */
-            color: #2e7d32; /* Vert foncé */
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 100%;
-        }
-
-        h1 { text-align: center; font-size: 1.5rem; }
-        p { font-size: 0.9rem; color: #666; }
-
-        .poubelle {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        label { font-weight: bold; flex: 1; }
-
-        input {
-            width: 80px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover { background-color: #388e3c; }
-
-        .resultat-box {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: #f1f8e9;
-            border-left: 5px solid #4caf50;
-            border-radius: 5px;
-        }
-
-        #resultat { font-size: 1.1rem; font-weight: bold; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; justify-content: center; padding: 20px; }
+        .container { background-color: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }
+        h1 { text-align: center; color: #2e7d32; }
+        .poubelle { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        input { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; color: white; margin-top: 10px; }
+        .btn-calcul { background-color: #4caf50; }
+        .btn-save { background-color: #2196F3; }
+        .resultat-box { margin-top: 20px; padding: 15px; background-color: #f1f8e9; border-left: 5px solid #4caf50; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Suivi du Gaspillage ODD</h1>
-    <p>Collège du Vaucluse (700 demi-pensionnaires)</p>
+    <h1>📊 Suivi du Gaspillage</h1>
+    <p style="text-align:center;"><strong>Espace Éco-Délégués</strong><br>Collège du Vaucluse</p>
+    
+    <div class="poubelle">
+        <label>Ton prénom :</label>
+        <input type="text" id="prenom" placeholder="Prénom">
+    </div>
+    
     <hr>
 
-    <div class="poubelle">
-        <label>Alimentaire (tri) :</label>
-        <input type="number" id="alimentaire" value="0" step="0.1"> kg
-    </div>
+    <div class="poubelle"><label>Alimentaire :</label><input type="number" id="alimentaire" value="0"> kg</div>
+    <div class="poubelle"><label>Serviettes :</label><input type="number" id="serviettes" value="0"> kg</div>
+    <div class="poubelle"><label>Emballages :</label><input type="number" id="emballages" value="0"> kg</div>
+    <div class="poubelle"><label>Fruits :</label><input type="number" id="fruits" value="0"> kg</div>
+    <div class="poubelle"><label>Pain :</label><input type="number" id="pain" value="0"> kg</div>
 
-    <div class="poubelle">
-        <label>Serviettes papier :</label>
-        <input type="number" id="serviettes" value="0" step="0.1"> kg
-    </div>
-
-    <div class="poubelle">
-        <label>Emballages :</label>
-        <input type="number" id="emballages" value="0" step="0.1"> kg
-    </div>
-
-    <div class="poubelle">
-        <label>Fruits entamés :</label>
-        <input type="number" id="fruits" value="0" step="0.1"> kg
-    </div>
-
-    <div class="poubelle">
-        <label>Pain :</label>
-        <input type="number" id="pain" value="0" step="0.1"> kg
-    </div>
-
-    <button onclick="calculerTotal()">Calculer l'impact du jour</button>
+    <button class="btn-calcul" onclick="calculerTotal()">Calculer l'impact du jour</button>
 
     <div class="resultat-box">
         <p id="resultat">En attente des mesures...</p>
     </div>
+
+    <button class="btn-save" onclick="enregistrerDonnees()">💾 Enregistrer dans le tableau</button>
 </div>
 
 <script>
-    // JavaScript : La logique de calcul
     function calculerTotal() {
-        // Récupération des valeurs saisies
+        let prenom = document.getElementById('prenom').value || "L'éco-délégué";
         let alim = parseFloat(document.getElementById('alimentaire').value) || 0;
         let serv = parseFloat(document.getElementById('serviettes').value) || 0;
         let emb = parseFloat(document.getElementById('emballages').value) || 0;
         let fru = parseFloat(document.getElementById('fruits').value) || 0;
         let p = parseFloat(document.getElementById('pain').value) || 0;
 
-        // Calculs
         let total = alim + serv + emb + fru + p;
-        let parEleve = total / 700;
+        let parEleve = (total / 700) * 1000;
 
-        // Affichage du texte
-        let message = "Total gaspillé : " + total.toFixed(2) + " kg<br>";
-        message += "Moyenne : " + (parEleve * 1000).toFixed(0) + " grammes par élève.";
+        document.getElementById('resultat').innerHTML = 
+            "Bravo " + prenom + " !<br>Total : <strong>" + total.toFixed(2) + " kg</strong><br>" +
+            "Soit " + parEleve.toFixed(0) + "g par élève.";
+    }
 
-        document.getElementById('resultat').innerHTML = message;
+    function enregistrerDonnees() {
+        alert("Action réussie ! (Pour que l'enregistrement fonctionne réellement, il faudra lier un Google Form plus tard).");
     }
 </script>
 
