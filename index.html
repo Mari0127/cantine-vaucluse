@@ -143,3 +143,40 @@
 
 </body>
 </html>
+<div id="boxDefi" style="margin-top: 20px; padding: 15px; border-radius: 10px; color: white; font-weight: bold; text-align: center; background-color: #757575;">
+    🎯 Défi de la semaine : En attente des données...
+</div>
+<div id="boxDefi" style="
+    margin-top: 25px; 
+    padding: 18px; 
+    border-radius: 12px; 
+    color: white; 
+    font-weight: 600; 
+    text-align: center; 
+    background-color: #757575;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: all 0.4s ease;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+">
+    🎯 Défi de la semaine : En attente des données...
+</div>
+// --- LOGIQUE ET ESTHÉTIQUE DU DÉFI ---
+        let boxDefi = document.getElementById('boxDefi');
+        
+        if (totalSemaine === 0) {
+            boxDefi.style.backgroundColor = "#78909c"; // Gris-bleu moderne
+            boxDefi.innerHTML = "🎯 Défi de la semaine : En attente des premières pesées...";
+        } else if (totalSemaine < 40) {
+            boxDefi.style.backgroundColor = "#2e7d32"; // Vert éco profond
+            boxDefi.style.boxShadow = "0 4px 15px rgba(46, 125, 50, 0.3)";
+            boxDefi.innerHTML = "🌱 EXCELLENT ! Le collège est un modèle de durabilité. Moins de 40 kg jetés !";
+        } else if (totalSemaine >= 40 && totalSemaine <= 60) {
+            boxDefi.style.backgroundColor = "#ef6c00"; // Orange chaud
+            boxDefi.style.boxShadow = "0 4px 15px rgba(239, 108, 0, 0.3)";
+            boxDefi.innerHTML = "🔥 ATTENTION ! On approche de la zone critique (Objectif : moins de 40 kg).";
+        } else {
+            boxDefi.style.backgroundColor = "#c62828"; // Rouge brique moderne
+            boxDefi.style.boxShadow = "0 4px 15px rgba(198, 40, 40, 0.3)";
+            boxDefi.innerHTML = "🚨 ALERTE GASPILLAGE ! Plus de 60 kg jetés. Il faut réagir la semaine prochaine !";
+        }
