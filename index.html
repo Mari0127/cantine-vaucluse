@@ -180,3 +180,90 @@
             boxDefi.style.boxShadow = "0 4px 15px rgba(198, 40, 40, 0.3)";
             boxDefi.innerHTML = "🚨 ALERTE GASPILLAGE ! Plus de 60 kg jetés. Il faut réagir la semaine prochaine !";
         }
+<button class="btn-reset" onclick="effacerTout()">🗑️ Réinitialiser la semaine</button>
+
+    <div id="boxDefi" style="margin-top: 25px; padding: 18px; border-radius: 12px; color: white; font-weight: 600; text-align: center; background-color: #757575; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: all 0.4s ease; font-size: 1rem; letter-spacing: 0.3px;">
+        🎯 Défi de la semaine : En attente des données...
+    </div>
+</div> <script>
+    // Chargement automatique au démarrage
+    window.onload = afficherDonnees;
+
+    function enregistrerDonnees() {
+        let jour = document.getElementById('jour').value;
+        let alim = parseFloat(document.getElementById('alim').value) || 0;
+        let serv = parseFloat(document.getElementById('serv').value) || 0;
+        let pain = parseFloat(document.getElementById('pain').value) || 0;
+        let fruits = parseFloat(document.getElementById('fruits').value) || 0;
+        let emb = parseFloat(document.getElementById('emb').value) || 0;
+
+        let totalJour = alim + serv + pain + fruits + emb;
+        let historique = JSON.parse(localStorage.getItem('suiviCantine')) || {};
+        
+        historique[jour] = { alim, serv, pain, fruits, emb, totalJour };
+        localStorage.setItem('suiviCantine', JSON.stringify(historique));
+        
+        alert("Données du " + jour + " enregistrées !");
+        afficherDonnees();
+    }
+
+    function afficherDonnees() {
+        let historique = JSON.parse(localStorage.getItem('suiviCantine')) || {};
+        let corps = document.getElementById('corpsTableau');
+        let totalSemaine = 0;
+        corps.innerHTML = "";
+
+        let joursOrdre = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
+
+        joursOrdre.forEach(j => {
+            if (historique[j]) {
+                let d = historique[j];
+                totalSemaine += d.totalJour;
+                corps.innerHTML += `
+                    <tr>
+                        <td><strong>${j}</strong></td>
+                        <td>${d.alim.toFixed(1)}</td>
+                        <td>${d.serv.toFixed(1)}</td>
+                        <td>${d.pain.toFixed(1)}</td>
+                        <td>${d.fruits.toFixed(1)}</td>
+                        <td>${d.emb.toFixed(1)}</td>
+                        <td><strong>${d.totalJour.toFixed(1)} kg</strong></td>
+                    </tr>`;
+            }
+        });
+
+        document.getElementById('totalSemaine').innerHTML = 
+            "Total cumulé cette semaine : " + totalSemaine.toFixed(1) + " kg<br>" +
+            "<span style='font-size:0.8rem'>(Soit " + ((totalSemaine/700)*1000).toFixed(0) + "g en moyenne par élève)</span>";
+
+        // --- LA LOGIQUE DU DÉFI REPLACÉE AU BON ENDROIT ---
+        let boxDefi = document.getElementById('boxDefi');
+        
+        if (totalSemaine === 0) {
+            boxDefi.style.backgroundColor = "#78909c"; 
+            boxDefi.innerHTML = "🎯 Défi de la semaine : En attente des premières pesées...";
+        } else if (totalSemaine < 40) {
+            boxDefi.style.backgroundColor = "#2e7d32"; 
+            boxDefi.style.boxShadow = "0 4px 15px rgba(46, 125, 50, 0.3)";
+            boxDefi.innerHTML = "🌱 EXCELLENT ! Le collège est un modèle de durabilité. Moins de 40 kg jetés !";
+        } else if (totalSemaine >= 40 && totalSemaine <= 60) {
+            boxDefi.style.backgroundColor = "#ef6c00"; 
+            boxDefi.style.boxShadow = "0 4px 15px rgba(239, 108, 0, 0.3)";
+            boxDefi.innerHTML = "🔥 ATTENTION ! On approche de la zone critique (Objectif : moins de 40 kg).";
+        } else {
+            boxDefi.style.backgroundColor = "#c62828"; 
+            boxDefi.style.boxShadow = "0 4px 15px rgba(198, 40, 40, 0.3)";
+            boxDefi.innerHTML = "🚨 ALERTE GASPILLAGE ! Plus de 60 kg jetés. Il faut réagir la semaine prochaine !";
+        }
+    }
+
+    function effacerTout() {
+        if (confirm("Attention : Cela va effacer toutes les données affichées dans le tableau. Continuer ?")) {
+            localStorage.removeItem('suiviCantine');
+            afficherDonnees();
+        }
+    }
+</script>
+
+</body>
+</html>
