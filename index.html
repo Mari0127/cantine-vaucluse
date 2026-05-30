@@ -4,43 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi ODD - Collège Vaucluse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS : Le design global de l'application */
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: #e8f5e9; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
-        }
-        .container { 
-            background-color: white; 
-            padding: 25px; 
-            border-radius: 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            max-width: 650px; 
-            width: 100%; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 650px; width: 100%; }
         h1, h2 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 20px; }
-        
         .saisie-box { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
         .poubelle { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         label { font-weight: bold; font-size: 0.95rem; }
         input, select { width: 90px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
-        
         button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; color: white; margin-top: 10px; font-weight: bold; font-size: 1rem; }
         .btn-calcul { background-color: #4caf50; transition: 0.3s; }
         .btn-calcul:hover { background-color: #388e3c; }
         .btn-reset { background-color: #e53935; margin-top: 25px; font-size: 0.8rem; width: auto; padding: 8px 15px; display: block; margin-left: auto; margin-right: auto; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.85rem; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background-color: #2e7d32; color: white; }
         tr:nth-child(even) { background-color: #f2f2f2; }
-        
         .total-info { margin-top: 20px; padding: 15px; background: #2e7d32; color: white; border-radius: 10px; text-align: center; font-size: 1.1rem; font-weight: bold; }
+        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 300px; }
     </style>
 </head>
 <body>
@@ -59,36 +42,30 @@
                 <option value="Vendredi">Vendredi</option>
             </select>
         </div>
-
         <div class="poubelle"><label>🥗 Déchets Alimentaires (kg) :</label><input type="number" id="alim" value="0" step="0.1"></div>
         <div class="poubelle"><label>🧻 Serviettes Papier (kg) :</label><input type="number" id="serv" value="0" step="0.1"></div>
         <div class="poubelle"><label>🍞 Pain (kg) :</label><input type="number" id="pain" value="0" step="0.1"></div>
         <div class="poubelle"><label>🍎 Fruits entamés (kg) :</label><input type="number" id="fruits" value="0" step="0.1"></div>
         <div class="poubelle"><label>📦 Emballages (kg) :</label><input type="number" id="emb" value="0" step="0.1"></div>
-
         <button class="btn-calcul" onclick="enregistrerDonnees()">💾 Enregistrer le bilan du jour</button>
     </div>
 
     <h2>📈 Bilan de la Semaine</h2>
     <table id="tableauRecap">
         <thead>
-            <tr>
-                <th>Jour</th>
-                <th>Alim.</th>
-                <th>Serv.</th>
-                <th>Pain</th>
-                <th>Fruits</th>
-                <th>Emb.</th>
-                <th>Total</th>
-            </tr>
+            <tr><th>Jour</th><th>Alim.</th><th>Serv.</th><th>Pain</th><th>Fruits</th><th>Emb.</th><th>Total</th></tr>
         </thead>
-        <tbody id="corpsTableau">
-            </tbody>
+        <tbody id="corpsTableau"></tbody>
     </table>
 
     <div id="totalSemaine" class="total-info">Total semaine : 0 kg</div>
 
-    <div id="boxDefi" style="margin-top: 25px; padding: 18px; border-radius: 12px; color: white; font-weight: 600; text-align: center; background-color: #757575; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: all 0.4s ease; font-size: 1rem; letter-spacing: 0.3px;">
+    <h2>📊 Évolution du Gaspillage (Total par jour)</h2>
+    <div class="chart-container">
+        <canvas id="graphiqueDechets"></canvas>
+    </div>
+
+    <div id="boxDefi" style="margin-top: 25px; padding: 18px; border-radius: 12px; color: white; font-weight: 600; text-align: center; background-color: #757575; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: all 0.4s ease; font-size: 1rem;">
         🎯 Défi de la semaine : En attente des données...
     </div>
 
@@ -96,8 +73,8 @@
 </div>
 
 <script>
-    // JavaScript : Toute la logique de calcul cachée en arrière-plan
     window.onload = afficherDonnees;
+    let monGraphique = null; // Stocke l'instance du graphique
 
     function enregistrerDonnees() {
         let jour = document.getElementById('jour').value;
@@ -124,11 +101,13 @@
         corps.innerHTML = "";
 
         let joursOrdre = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
+        let totauxPourGraphique = [0, 0, 0, 0]; // Pour alimenter Chart.js
 
-        joursOrdre.forEach(j => {
+        joursOrdre.forEach((j, index) => {
             if (historique[j]) {
                 let d = historique[j];
                 totalSemaine += d.totalJour;
+                totauxPourGraphique[index] = d.totalJour; // On stocke la valeur pour le graphique
                 corps.innerHTML += `
                     <tr>
                         <td><strong>${j}</strong></td>
@@ -146,26 +125,55 @@
             "Total cumulé cette semaine : " + totalSemaine.toFixed(1) + " kg<br>" +
             "<span style='font-size:0.8rem'>(Soit " + ((totalSemaine/700)*1000).toFixed(0) + "g en moyenne par élève)</span>";
 
-        // --- LA LOGIQUE ET L'ESTHÉTIQUE DU DÉFI ---
+        // Mettre à jour ou créer le graphique
+        genererGraphique(totauxPourGraphique);
+
+        // Logique du Défi
         let boxDefi = document.getElementById('boxDefi');
-        
         if (totalSemaine === 0) {
             boxDefi.style.backgroundColor = "#78909c"; 
-            boxDefi.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
             boxDefi.innerHTML = "🎯 Défi de la semaine : En attente des premières pesées...";
         } else if (totalSemaine < 40) {
             boxDefi.style.backgroundColor = "#2e7d32"; 
-            boxDefi.style.boxShadow = "0 4px 15px rgba(46, 125, 50, 0.3)";
             boxDefi.innerHTML = "🌱 EXCELLENT ! Le collège est un modèle de durabilité. Moins de 40 kg jetés !";
         } else if (totalSemaine >= 40 && totalSemaine <= 60) {
             boxDefi.style.backgroundColor = "#ef6c00"; 
-            boxDefi.style.boxShadow = "0 4px 15px rgba(239, 108, 0, 0.3)";
             boxDefi.innerHTML = "🔥 ATTENTION ! On approche de la zone critique (Objectif : moins de 40 kg).";
         } else {
             boxDefi.style.backgroundColor = "#c62828"; 
-            boxDefi.style.boxShadow = "0 4px 15px rgba(198, 40, 40, 0.3)";
             boxDefi.innerHTML = "🚨 ALERTE GASPILLAGE ! Plus de 60 kg jetés. Il faut réagir la semaine prochaine !";
         }
+    }
+
+    function genererGraphique(donnees) {
+        let ctx = document.getElementById('graphiqueDechets').getContext('2d');
+        
+        // Si le graphique existe déjà, on le détruit pour le recréer propre
+        if (monGraphique !== null) {
+            monGraphique.destroy();
+        }
+
+        monGraphique = new Chart(ctx, {
+            type: 'bar', // Type : 'bar' pour des barres, tu peux tester 'line' pour une courbe !
+            data: {
+                labels: ['Lundi', 'Mardi', 'Jeudi', 'Vendredi'],
+                datasets: [{
+                    label: 'Déchets totaux (kg)',
+                    data: donnees,
+                    backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                    borderColor: 'rgba(46, 125, 50, 1)',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
     }
 
     function effacerTout() {
