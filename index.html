@@ -3,189 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi ODD - Cantine Scolaire</title>
+    <title>Suivi ODD - Collège Vaucluse (Cantine Giono)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 650px; width: 100%; }
+        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
         h1, h2 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 1.1rem; margin-bottom: 20px; font-weight: bold; }
+        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 20px; }
         
-        .saisie-box { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 30px; }
-        .poubelle { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        label { font-weight: bold; font-size: 0.95rem; }
-        input, select { width: 90px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
-        
-        button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; color: white; margin-top: 10px; font-weight: bold; font-size: 1rem; }
-        .btn-calcul { background-color: #4caf50; transition: 0.3s; }
-        .btn-calcul:hover { background-color: #388e3c; }
-        
-        .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; display: none; }
+        .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.85rem; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background-color: #2e7d32; color: white; }
         tr:nth-child(even) { background-color: #f2f2f2; }
         
-        .total-info { margin-top: 20px; padding: 15px; background: #2e7d32; color: white; border-radius: 10px; text-align: center; font-size: 1.1rem; font-weight: bold; }
-        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 300px; }
-        
+        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 350px; }
         .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 20px auto 0 auto; }
+        .btn-refresh:hover { background-color: #01579b; }
+        
+        .section-titre { margin-top: 25px; padding-bottom: 5px; border-bottom: 2px solid #2e7d32; color: #2e7d32; font-size: 1.1rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Gaspillage Cantine</h1>
-    <p class="subtitle">Collège [Collège Jean Giono] — 700 élèves</p>
+    <h1>📊 Suivi Consommations & Déchets</h1>
+    <p class="subtitle">Défi Carbone Haut Vaucluse — Cantine Giono</p>
     
-    <h2>✍️ Saisie des Pesées du Jour</h2>
-    <div class="saisie-box">
-        <div class="poubelle">
-            <label>📅 Jour de saisie :</label>
-            <select id="jour">
-                <option value="Lundi">Lundi</option>
-                <option value="Mardi">Mardi</option>
-                <option value="Jeudi">Jeudi</option>
-                <option value="Vendredi">Vendredi</option>
-            </select>
-        </div>
-        <div class="poubelle"><label>🥗 Déchets Alimentaires (kg) :</label><input type="number" id="alim" value="0" step="0.1"></div>
-        <div class="poubelle"><label>🧻 Serviettes Papier (kg) :</label><input type="number" id="serv" value="0" step="0.1"></div>
-        <div class="poubelle"><label>🍞 Pain (kg) :</label><input type="number" id="pain" value="0" step="0.1"></div>
-        <div class="poubelle"><label>🍎 Fruits entamés (kg) :</label><input type="number" id="fruits" value="0" step="0.1"></div>
-        <div class="poubelle"><label>📦 Emballages (kg) :</label><input type="number" id="emb" value="0" step="0.1"></div>
-        <button class="btn-calcul" onclick="enregistrerDonneesLocalement()">💾 Enregistrer localement et mettre à jour</button>
+    <div id="loading" class="loading-box">🔄 Connexion à Google Sheets et récupération des données...</div>
+
+    <div style="text-align: center; margin-bottom: 20px; background: #f1f8e9; padding: 12px; border-radius: 8px;">
+        <label style="font-weight: bold;">📅 Sélectionner la vue temporelle : </label>
+        <select id="selectFiltre" onchange="traiterEtAfficherDonnees()" style="padding: 6px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+            <option value="jours">Affichage par Jours (Semaine)</option>
+            <option value="mois">Affichage par Mois (Année)</option>
+        </select>
     </div>
 
-    <div id="loading" class="loading-box">🔄 Synchronisation avec le tableau de bord...</div>
+    <div class="section-titre">📈 Tableau récapitulatif des données (Direct Google Sheets)</div>
+    <div style="overflow-x: auto;">
+        <table id="tableauRecap">
+            <thead>
+                <tr>
+                    <th>Période</th>
+                    <th>Repas Viande Rouge</th>
+                    <th>Repas Viande Blanche</th>
+                    <th>Repas Végétarien</th>
+                    <th>Repas Poissons</th>
+                    <th>Déchets Alim.</th>
+                    <th>Serviettes Papier</th>
+                </tr>
+            </thead>
+            <tbody id="corpsTableau">
+                </tbody>
+        </table>
+    </div>
 
-    <h2>📈 Bilan Récapitulatif de la Semaine</h2>
-    <table id="tableauRecap">
-        <thead>
-            <tr>
-                <th>Jour</th><th>Alim.</th><th>Serv.</th><th>Pain</th><th>Fruits</th><th>Emb.</th><th>Total</th>
-            </tr>
-        </thead>
-        <tbody id="corpsTableau"></tbody>
-    </table>
-
-    <div id="totalSemaine" class="total-info">Total semaine : 0 kg</div>
-
-    <h2>📊 Évolution du Gaspillage (Total par jour)</h2>
+    <div class="section-titre">📊 Graphique d'Analyse (Marquer les esprits)</div>
     <div class="chart-container">
-        <canvas id="graphiqueDechets"></canvas>
+        <canvas id="graphiqueAnalyse"></canvas>
     </div>
 
-    <div id="boxDefi" style="margin-top: 25px; padding: 18px; border-radius: 12px; color: white; font-weight: 600; text-align: center; background-color: #757575;">
-        🎯 Défi de la semaine : En attente des données...
-    </div>
-
-    <button class="btn-refresh" onclick="chargerDonnees()">🔄 Actualiser l'affichage</button>
+    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Actualiser les données</button>
 </div>
 
 <script>
+    // Configuration d'accès à ton Google Sheets
+    const sheetsId = "12fo8cluTH5DmI1dZJh2P_iJaso-NmplnEvxcyb5pS0M";
+    const sheetName = "CANTINE GIONO"; 
+    const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+    // Listes ordonnées demandées par le prof
+    const listesJours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
+    const listesMois = ["Sept", "Oct", "Nov", "Dec", "Janv", "Fev", "Mars", "Avril", "Mai", "Juin"];
+
+    let donneesGlobalesBrutes = [];
     let monGraphique = null;
 
-    window.onload = chargerDonnees;
+    window.onload = chargerDonneesGoogleSheets;
 
-    // Enregistre les données sur le navigateur pour pouvoir tester immédiatement sur ton écran
-    function enregistrerDonneesLocalement() {
-        let jour = document.getElementById('jour').value;
-        let alim = parseFloat(document.getElementById('alim').value) || 0;
-        let serv = parseFloat(document.getElementById('serv').value) || 0;
-        let pain = parseFloat(document.getElementById('pain').value) || 0;
-        let fruits = parseFloat(document.getElementById('fruits').value) || 0;
-        let emb = parseFloat(document.getElementById('emb').value) || 0;
-        let totalJour = alim + serv + pain + fruits + emb;
-
-        let historique = JSON.parse(localStorage.getItem('suiviCantine')) || {};
-        historique[jour] = { alim, serv, pain, fruits, emb, totalJour };
-        localStorage.setItem('suiviCantine', JSON.stringify(historique));
+    function chargerDonneesGoogleSheets() {
+        document.getElementById('loading').style.display = "block";
+        document.getElementById('loading').innerHTML = "🔄 Connexion à Google Sheets et récupération des données...";
         
-        alert("Données enregistrées avec succès !");
-        chargerDonnees();
+        fetch(urlCSV)
+            .then(response => response.text())
+            .then(data => {
+                extraireDonneesCSV(data);
+                traiterEtAfficherDonnees();
+            })
+            .catch(error => {
+                console.error("Erreur :", error);
+                document.getElementById('loading').innerHTML = "❌ Erreur de connexion au Google Sheets. Vérifie que le partage est bien activé !";
+            });
     }
 
-    function chargerDonnees() {
-        // Charge en priorité ce qui est saisi sur l'écran
-        let historique = JSON.parse(localStorage.getItem('suiviCantine')) || {};
-        afficherLeTout(historique);
-    }
+    function extraireDonneesCSV(texteCSV) {
+        donneesGlobalesBrutes = [];
+        let lignes = texteCSV.split('\n');
 
-    function afficherLeTout(historique) {
-        let corps = document.getElementById('corpsTableau');
-        let totalSemaine = 0;
-        corps.innerHTML = "";
+        // On parcourt les lignes en sautant l'en-tête (i=1)
+        for (let i = 1; i < lignes.length; i++) {
+            if (lignes[i].trim() === "") continue;
+            
+            // Nettoyage des guillemets de sécurité de Google
+            let cellules = lignes[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+            
+            if (cellules.length >= 7) {
+                let periode = cellules[0]; // Colonne A : Jour ou Mois
+                let vRouge = parseFloat(cellules[1]) || 0; // Colonne B
+                let vBlanche = parseFloat(cellules[2]) || 0; // Colonne C
+                let veget = parseFloat(cellules[3]) || 0; // Colonne D
+                let poisson = parseFloat(cellules[4]) || 0; // Colonne E
+                let dechets = parseFloat(cellules[5]) || 0; // Colonne F
+                let serv = parseFloat(cellules[6]) || 0; // Colonne G
 
-        let joursOrdre = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
-        let totauxPourGraphique = [0, 0, 0, 0];
-
-        joursOrdre.forEach((j, index) => {
-            if (historique[j]) {
-                let d = historique[j];
-                totalSemaine += d.totalJour;
-                totauxPourGraphique[index] = d.totalJour;
-                corps.innerHTML += `
-                    <tr>
-                        <td><strong>${j}</strong></td>
-                        <td>${d.alim.toFixed(1)}</td>
-                        <td>${d.serv.toFixed(1)}</td>
-                        <td>${d.pain.toFixed(1)}</td>
-                        <td>${d.fruits.toFixed(1)}</td>
-                        <td>${d.emb.toFixed(1)}</td>
-                        <td><strong>${d.totalJour.toFixed(1)} kg</strong></td>
-                    </tr>`;
-            } else {
-                corps.innerHTML += `<tr><td><strong>${j}</strong></td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0 kg</td></tr>`;
+                if (periode) {
+                    donneesGlobalesBrutes[periode] = { vRouge, vBlanche, veget, poisson, dechets, serv };
+                }
             }
+        }
+    }
+
+    function traiterEtAfficherDonnees() {
+        document.getElementById('loading').style.display = "none";
+        let filtre = document.getElementById('selectFiltre').value;
+        let corps = document.getElementById('corpsTableau');
+        corps.innerHTML = "";
+        
+        // Choix de la liste selon le filtre sélectionné
+        let periodesAffichees = (filtre === "jours") ? listesJours : listesMois;
+        let donneesPourGraphique = [];
+
+        periodesAffichees.forEach(p => {
+            let d = donneesGlobalesBrutes[p] || { vRouge: 0, vBlanche: 0, veget: 0, poisson: 0, dechets: 0, serv: 0 };
+            
+            donneesPourGraphique.push({ periode: p, ...d });
+
+            corps.innerHTML += `
+                <tr>
+                    <td><strong>${p}</strong></td>
+                    <td>${d.vRouge}</td>
+                    <td>${d.vBlanche}</td>
+                    <td>${d.veget}</td>
+                    <td>${d.poisson}</td>
+                    <td>${d.dechets.toFixed(1)} kg</td>
+                    <td>${d.serv.toFixed(1)} kg</td>
+                </tr>`;
         });
 
-        document.getElementById('totalSemaine').innerHTML = 
-            "Total cumulé cette semaine : " + totalSemaine.toFixed(1) + " kg<br>" +
-            "<span style='font-size:0.8rem'>(Soit " + ((totalSemaine/700)*1000).toFixed(0) + "g en moyenne par élève)</span>";
-
-        genererGraphique(totauxPourGraphique);
-        analyserDefi(totalSemaine);
+        genererGraphique(donneesPourGraphique);
     }
 
     function genererGraphique(donnees) {
-        let ctx = document.getElementById('graphiqueDechets').getContext('2d');
+        let ctx = document.getElementById('graphiqueAnalyse').getContext('2d');
         if (monGraphique !== null) { monGraphique.destroy(); }
+
+        let labels = donnees.map(d => d.periode);
 
         monGraphique = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Lundi', 'Mardi', 'Jeudi', 'Vendredi'],
-                datasets: [{
-                    label: 'Déchets totaux (kg)',
-                    data: donnees,
-                    backgroundColor: 'rgba(76, 175, 80, 0.6)',
-                    borderColor: 'rgba(46, 125, 50, 1)',
-                    borderWidth: 2,
-                    borderRadius: 5
-                }]
+                labels: labels,
+                datasets: [
+                    { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: 'rgba(239, 83, 80, 0.75)' },
+                    { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: 'rgba(255, 167, 38, 0.75)' },
+                    { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: 'rgba(102, 187, 106, 0.75)' },
+                    { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: 'rgba(41, 182, 246, 0.75)' },
+                    { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: 'rgba(120, 144, 156, 0.75)' },
+                    { label: '🧻 Serviettes', data: donnees.map(d => d.serv), backgroundColor: 'rgba(171, 71, 188, 0.75)' }
+                ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Quantités (Repas / kg)' } }
+                }
+            }
         });
     }
-
-    function analyserDefi(totalSemaine) {
-        let boxDefi = document.getElementById('boxDefi');
-        if (totalSemaine === 0) {
-            boxDefi.style.backgroundColor = "#78909c"; 
-            boxDefi.innerHTML = "🎯 Défi de la semaine : En attente des premières lignes...";
-        } else if (totalSemaine < 40) {
-            boxDefi.style.backgroundColor = "#2e7d32"; 
-            boxDefi.innerHTML = "🌱 EXCELLENT ! Le collège est un modèle de durabilité. Moins de 40 kg jetés !";
-        } else if (totalSemaine >= 40 && totalSemaine <= 60) {
-            boxDefi.style.backgroundColor = "#ef6c00"; 
-            boxDefi.innerHTML = "🔥 ATTENTION ! On approche de la zone critique (Objectif : moins de 40 kg).";
-        } else {
-            boxDefi.style.backgroundColor = "#c62828"; 
-            boxDefi.innerHTML = "🚨 ALERTE GASPILLAGE ! Plus de 60 kg jetés. Il faut réagir la semaine prochaine !";
-        }
-    }
 </script>
+
 </body>
 </html>
