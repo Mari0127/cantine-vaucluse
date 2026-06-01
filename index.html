@@ -3,59 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi ODD - Collège Vaucluse (Cantine Giono)</title>
+    <title>Tableau de Bord Interactif - Cantine Giono</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 950px; width: 100%; }
-        h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f4; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1050px; width: 100%; box-sizing: border-box; }
+        h1 { text-align: center; color: #2e7d32; margin-top: 0; margin-bottom: 5px; font-size: 1.8rem; }
+        p.subtitle { text-align: center; color: #666; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; }
         
-        .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
+        .loading-box { background: #e3f2fd; color: #0d47a1; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
-        .controls-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 25px; background: #f1f8e9; padding: 15px; border-radius: 10px; border: 1px solid #c8e6c9; }
-        .control-group { display: flex; flex-direction: column; align-items: center; }
-        .controls-box label { font-weight: bold; color: #2e7d32; margin-bottom: 5px; font-size: 0.9rem; }
-        .controls-box select { padding: 8px 15px; border-radius: 5px; border: 1px solid #2e7d32; font-weight: bold; cursor: pointer; min-width: 200px; }
+        .filter-zone { text-align: center; margin-bottom: 25px; background: #f1f8e9; padding: 15px; border-radius: 8px; border: 1px solid #dcedc8; }
+        label { font-weight: bold; color: #33691e; margin-right: 10px; }
+        select { padding: 8px 12px; border-radius: 5px; border: 1px solid #c5e1a5; font-weight: bold; cursor: pointer; background: white; color: #33691e; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.8rem; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #2e7d32; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        .section-title { margin-top: 30px; padding-bottom: 6px; border-bottom: 2px solid #81c784; color: #2e7d32; font-size: 1.15rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
-        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 420px; }
-        .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 20px auto 0 auto; }
+        .table-wrapper { overflow-x: auto; margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.85rem; min-width: 850px; }
+        th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background-color: #2e7d32; color: white; font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: #f9fbf9; }
+        td strong { color: #1b5e20; }
+        
+        .chart-container { margin-top: 20px; position: relative; width: 100%; height: 420px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; box-sizing: border-box; }
+        
+        .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; display: block; margin: 25px auto 10px auto; transition: background 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .btn-refresh:hover { background-color: #01579b; }
-        
-        .section-titre { margin-top: 25px; padding-bottom: 5px; border-bottom: 2px solid #2e7d32; color: #2e7d32; font-size: 1.1rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>📊 Tableau de Bord Interactif - Cantine Giono</h1>
-    <p class="subtitle">Défi Carbone Haut Vaucluse — Données stockées sur Google Sheets</p>
+    <p class="subtitle">Défi Carbone Haut Vaucluse — Suivi en direct depuis Google Sheets</p>
     
-    <div id="loading" class="loading-box">🔄 Connexion au stockage Google Sheets et récupération des données...</div>
+    <div id="loading" class="loading-box">🔄 Connexion et récupération des données de la cantine...</div>
 
-    <div class="controls-box">
-        <div class="control-group">
-            <label>1️⃣ Choisir la vue globale :</label>
-            <select id="selectVue" onchange="gererChangementVue()">
-                <option value="jours">📅 Affichage par Jours (Semaine)</option>
-                <option value="mois">📆 Affichage par Mois (Année)</option>
-            </select>
-        </div>
-        
-        <div class="control-group" id="zoneFiltrePrecis">
-            <label>2️⃣ Sélectionner l'élément à afficher :</label>
-            <select id="selectElement" onchange="filtrerEtAfficher()">
-                </select>
-        </div>
+    <div class="filter-zone">
+        <label for="selectFiltre">📅 Choisir la période d'analyse : </label>
+        <select id="selectFiltre" onchange="traiterEtAfficherDonnees()">
+            <option value="jours">Affichage par Jours (Semaine en cours)</option>
+            <option value="mois">Affichage par Mois (Vue Annuelle)</option>
+        </select>
     </div>
 
-    <div class="section-titre">📈 Données lues depuis le Google Sheets</div>
-    <div style="overflow-x: auto;">
+    <div class="section-title">📋 Données lues depuis le Google Sheets</div>
+    <div class="table-wrapper">
         <table id="tableauRecap">
             <thead>
                 <tr>
@@ -76,7 +71,7 @@
         </table>
     </div>
 
-    <div class="section-titre">📊 Graphique d'Analyse Sélectionné</div>
+    <div class="section-title">📊 Graphique d'Analyse Sélectionné</div>
     <div class="chart-container">
         <canvas id="graphiqueAnalyse"></canvas>
     </div>
@@ -85,22 +80,145 @@
 </div>
 
 <script>
-    // Identifiant de ton NOUVEAU lien Google Sheets de stockage
+    // Configuration de l'accès au nouveau Google Sheets
     const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
     const sheetName = "CANTINE GIONO"; 
     const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
+    // Identifiants exacts attendus en colonne A
     const listesJours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
     const listesMois = ["Sept", "Oct", "Nov", "Dec", "Janv", "Fev", "Mars", "Avril", "Mai", "Juin"];
 
-    let donneesGlobalesBrutes = [];
+    let donneesGlobalesBrutes = {};
     let monGraphique = null;
 
     window.onload = chargerDonneesGoogleSheets;
 
-    // Étape 1 : Télécharger le fichier de stockage Excel
     function chargerDonneesGoogleSheets() {
         document.getElementById('loading').style.display = "block";
+        document.getElementById('loading').className = "loading-box";
+        document.getElementById('loading').innerHTML = "🔄 Connexion et récupération des données de la cantine...";
         
         fetch(urlCSV)
-            .then(response
+            .then(response => response.text())
+            .then(data => {
+                extraireDonneesCSV(data);
+                traiterEtAfficherDonnees();
+            })
+            .catch(error => {
+                console.error("Erreur détaillée :", error);
+                let box = document.getElementById('loading');
+                box.style.display = "block";
+                box.style.background = "#ffebee";
+                box.style.color = "#c62828";
+                box.innerHTML = "❌ Impossible de lire le fichier. Vérifie bien que l'accès général de ton Google Sheets est configuré sur 'Tous les utilisateurs disposant du lien' !";
+            });
+    }
+
+    function extraireDonneesCSV(texteCSV) {
+        donneesGlobalesBrutes = {};
+        
+        // Découpage par ligne en gérant les retours à la ligne correctement
+        let lignes = texteCSV.split(/\r?\n/);
+
+        for (let i = 1; i < lignes.length; i++) {
+            let ligne = lignes[i].trim();
+            if (ligne === "") continue;
+            
+            // Séparation par virgule (format d'exportation standard de Google Sheets)
+            let cellules = ligne.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+            
+            if (cellules.length >= 10) {
+                let periode = cellules[0]; // Colonne A (Ex: Lundi, Mardi, Sept...)
+                
+                let vRouge = parseFloat(cellules[1]) || 0;   // Col B
+                let vBlanche = parseFloat(cellules[2]) || 0;  // Col C
+                let veget = parseFloat(cellules[3]) || 0;     // Col D
+                let poisson = parseFloat(cellules[4]) || 0;   // Col E
+                let pain = parseFloat(cellules[5]) || 0;      // Col F
+                let fruits = parseFloat(cellules[6]) || 0;    // Col G
+                let emb = parseFloat(cellules[7]) || 0;       // Col H
+                let dechets = parseFloat(cellules[8]) || 0;   // Col I
+                let serv = parseFloat(cellules[9]) || 0;      // Col J
+
+                if (periode) {
+                    donneesGlobalesBrutes[periode] = { vRouge, vBlanche, veget, poisson, pain, fruits, emb, dechets, serv };
+                }
+            }
+        }
+    }
+
+    function traiterEtAfficherDonnees() {
+        document.getElementById('loading').style.display = "none";
+        let filtre = document.getElementById('selectFiltre').value;
+        let corps = document.getElementById('corpsTableau');
+        corps.innerHTML = "";
+        
+        let periodesAffichees = (filtre === "jours") ? listesJours : listesMois;
+        let donneesPourGraphique = [];
+
+        periodesAffichees.forEach(p => {
+            // Récupération des données ou valeurs à 0 par défaut si la ligne n'existe pas encore
+            let d = donneesGlobalesBrutes[p] || { vRouge: 0, vBlanche: 0, veget: 0, poisson: 0, pain: 0, fruits: 0, emb: 0, dechets: 0, serv: 0 };
+            
+            donneesPourGraphique.push({ periode: p, ...d });
+
+            // Remplissage progressif du tableau HTML visible sur l'écran
+            corps.innerHTML += `
+                <tr>
+                    <td><strong>${p}</strong></td>
+                    <td>${d.vRouge}</td>
+                    <td>${d.vBlanche}</td>
+                    <td>${d.veget}</td>
+                    <td>${d.poisson}</td>
+                    <td>${d.pain} kg</td>
+                    <td>${d.fruits} kg</td>
+                    <td>${d.emb} kg</td>
+                    <td>${d.dechets} kg</td>
+                    <td>${d.serv} kg</td>
+                </tr>`;
+        });
+
+        genererGraphique(donneesPourGraphique);
+    }
+
+    function genererGraphique(donnees) {
+        let ctx = document.getElementById('graphiqueAnalyse').getContext('2d');
+        
+        // Destruction de l'ancien graphique s'il existe pour éviter les superpositions visuelles
+        if (monGraphique !== null) { monGraphique.destroy(); }
+
+        let labels = donnees.map(d => d.periode);
+
+        monGraphique = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: '#ef5350' },
+                    { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: '#ffa726' },
+                    { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: '#66bb6a' },
+                    { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: '#29b6f6' },
+                    { label: '🥖 Pain (kg)', data: donnees.map(d => d.pain), backgroundColor: '#caa43b' },
+                    { label: '🍏 Fruits (kg)', data: donnees.map(d => d.fruits), backgroundColor: '#9ccc65' },
+                    { label: '📦 Emballages (kg)', data: donnees.map(d => d.emb), backgroundColor: '#8d6e63' },
+                    { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: '#78909c' },
+                    { label: '🧻 Serviettes', data: donnees.map(d => d.serv), backgroundColor: '#ab47bc' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+                },
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Quantités déclarées' } } 
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
