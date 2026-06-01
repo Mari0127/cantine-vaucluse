@@ -13,11 +13,12 @@
         
         .loading-box { background: #e3f2fd; color: #0d47a1; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
-        .filter-zone { text-align: center; margin-bottom: 25px; background: #f1f8e9; padding: 15px; border-radius: 8px; border: 1px solid #dcedc8; }
-        label { font-weight: bold; color: #33691e; margin-right: 10px; }
+        .interactive-zone { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 25px; background: #f1f8e9; padding: 15px; border-radius: 8px; border: 1px solid #dcedc8; }
+        .control-group { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+        label { font-weight: bold; color: #33691e; font-size: 0.9rem; }
         select { padding: 8px 12px; border-radius: 5px; border: 1px solid #c5e1a5; font-weight: bold; cursor: pointer; background: white; color: #33691e; }
         
-        .section-title { margin-top: 30px; padding-bottom: 6px; border-bottom: 2px solid #81c784; color: #2e7d32; font-size: 1.15rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .section-title { margin-top: 30px; padding-bottom: 6px; border-bottom: 2px solid #81c784; color: #2e7d32; font-size: 1.15rem; font-weight: bold; }
         
         .table-wrapper { overflow-x: auto; margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; background: white; font-size: 0.85rem; min-width: 850px; }
@@ -37,16 +38,36 @@
 
 <div class="container">
     <h1>📊 Tableau de Bord Interactif - Cantine Giono</h1>
-    <p class="subtitle">Défi Carbone Haut Vaucluse — Suivi en direct depuis Google Sheets</p>
+    <p class="subtitle">Défi Carbone Haut Vaucluse — Visualisation publique en temps réel</p>
     
     <div id="loading" class="loading-box">🔄 Connexion et récupération des données de la cantine...</div>
 
-    <div class="filter-zone">
-        <label for="selectFiltre">📅 Choisir la période d'analyse : </label>
-        <select id="selectFiltre" onchange="traiterEtAfficherDonnees()">
-            <option value="jours">Affichage par Jours (Semaine en cours)</option>
-            <option value="mois">Affichage par Mois (Vue Annuelle)</option>
-        </select>
+    <div class="interactive-zone">
+        <div class="control-group">
+            <label for="selectFiltre">1️⃣ Choisir la vue globale :</label>
+            <select id="selectFiltre" onchange="traiterEtAfficherDonnees()">
+                <option value="jours">Affichage par Jours (Semaine)</option>
+                <option value="mois">Affichage par Mois (Année)</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="selectElement">2️⃣ Sélectionner l'élément à afficher :</label>
+            <select id="selectElement" onchange="traiterEtAfficherDonnees()">
+                <option value="tous">Tout afficher en même temps</option>
+                <option value="repas">Uniquement les Repas (Viandes, Végé, Poisson)</option>
+                <option value="dechets">Uniquement les Déchets & Consommables (Pain, Fruits, Emballages...)</option>
+                <option value="vRouge">🔴 Viande Rouge uniquement</option>
+                <option value="vBlanche">🍗 Viande Blanche uniquement</option>
+                <option value="veget">🌱 Repas Végétarien uniquement</option>
+                <option value="poisson">🐟 Poissons uniquement</option>
+                <option value="pain">🥖 Pain jeté</option>
+                <option value="fruits">🍏 Fruits gaspillés</option>
+                <option value="emb">📦 Emballages</option>
+                <option value="dechetsAlim">🗑️ Déchets Alimentaires globaux</option>
+                <option value="serviettes">🧻 Serviettes Papier</option>
+            </select>
+        </div>
     </div>
 
     <div class="section-title">📋 Données lues depuis le Google Sheets</div>
@@ -76,16 +97,14 @@
         <canvas id="graphiqueAnalyse"></canvas>
     </div>
 
-    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Recharger depuis le Sheets</button>
+    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Mettre à jour depuis le Excel public</button>
 </div>
 
 <script>
-    // Configuration de l'accès au nouveau Google Sheets
     const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
     const sheetName = "CANTINE GIONO"; 
     const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
-    // Identifiants exacts attendus en colonne A
     const listesJours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
     const listesMois = ["Sept", "Oct", "Nov", "Dec", "Janv", "Fev", "Mars", "Avril", "Mai", "Juin"];
 
@@ -97,7 +116,7 @@
     function chargerDonneesGoogleSheets() {
         document.getElementById('loading').style.display = "block";
         document.getElementById('loading').className = "loading-box";
-        document.getElementById('loading').innerHTML = "🔄 Connexion et récupération des données de la cantine...";
+        document.getElementById('loading').innerHTML = "🔄 Connexion au Google Sheets public...";
         
         fetch(urlCSV)
             .then(response => response.text())
@@ -106,40 +125,36 @@
                 traiterEtAfficherDonnees();
             })
             .catch(error => {
-                console.error("Erreur détaillée :", error);
+                console.error(error);
                 let box = document.getElementById('loading');
                 box.style.display = "block";
                 box.style.background = "#ffebee";
                 box.style.color = "#c62828";
-                box.innerHTML = "❌ Impossible de lire le fichier. Vérifie bien que l'accès général de ton Google Sheets est configuré sur 'Tous les utilisateurs disposant du lien' !";
+                box.innerHTML = "❌ Erreur de connexion au fichier.";
             });
     }
 
     function extraireDonneesCSV(texteCSV) {
         donneesGlobalesBrutes = {};
-        
-        // Découpage par ligne en gérant les retours à la ligne correctement
         let lignes = texteCSV.split(/\r?\n/);
 
         for (let i = 1; i < lignes.length; i++) {
             let ligne = lignes[i].trim();
             if (ligne === "") continue;
             
-            // Séparation par virgule (format d'exportation standard de Google Sheets)
             let cellules = ligne.split(',').map(c => c.replace(/^"|"$/g, '').trim());
             
             if (cellules.length >= 10) {
-                let periode = cellules[0]; // Colonne A (Ex: Lundi, Mardi, Sept...)
-                
-                let vRouge = parseFloat(cellules[1]) || 0;   // Col B
-                let vBlanche = parseFloat(cellules[2]) || 0;  // Col C
-                let veget = parseFloat(cellules[3]) || 0;     // Col D
-                let poisson = parseFloat(cellules[4]) || 0;   // Col E
-                let pain = parseFloat(cellules[5]) || 0;      // Col F
-                let fruits = parseFloat(cellules[6]) || 0;    // Col G
-                let emb = parseFloat(cellules[7]) || 0;       // Col H
-                let dechets = parseFloat(cellules[8]) || 0;   // Col I
-                let serv = parseFloat(cellules[9]) || 0;      // Col J
+                let periode = cellules[0];
+                let vRouge = parseFloat(cellules[1]) || 0;
+                let vBlanche = parseFloat(cellules[2]) || 0;
+                let veget = parseFloat(cellules[3]) || 0;
+                let poisson = parseFloat(cellules[4]) || 0;
+                let pain = parseFloat(cellules[5]) || 0;
+                let fruits = parseFloat(cellules[6]) || 0;
+                let emb = parseFloat(cellules[7]) || 0;
+                let dechets = parseFloat(cellules[8]) || 0;
+                let serv = parseFloat(cellules[9]) || 0;
 
                 if (periode) {
                     donneesGlobalesBrutes[periode] = { vRouge, vBlanche, veget, poisson, pain, fruits, emb, dechets, serv };
@@ -150,20 +165,17 @@
 
     function traiterEtAfficherDonnees() {
         document.getElementById('loading').style.display = "none";
-        let filtre = document.getElementById('selectFiltre').value;
+        let filtreTemps = document.getElementById('selectFiltre').value;
         let corps = document.getElementById('corpsTableau');
         corps.innerHTML = "";
         
-        let periodesAffichees = (filtre === "jours") ? listesJours : listesMois;
-        let donneesPourGraphique = [];
+        let periodesAffichees = (filtreTemps === "jours") ? listesJours : listesMois;
+        let donneesFiltrées = [];
 
         periodesAffichees.forEach(p => {
-            // Récupération des données ou valeurs à 0 par défaut si la ligne n'existe pas encore
             let d = donneesGlobalesBrutes[p] || { vRouge: 0, vBlanche: 0, veget: 0, poisson: 0, pain: 0, fruits: 0, emb: 0, dechets: 0, serv: 0 };
-            
-            donneesPourGraphique.push({ periode: p, ...d });
+            donneesFiltrées.push({ periode: p, ...d });
 
-            // Remplissage progressif du tableau HTML visible sur l'écran
             corps.innerHTML += `
                 <tr>
                     <td><strong>${p}</strong></td>
@@ -179,46 +191,24 @@
                 </tr>`;
         });
 
-        genererGraphique(donneesPourGraphique);
+        genererGraphiqueInteractif(donneesFiltrées);
     }
 
-    function genererGraphique(donnees) {
+    function genererGraphiqueInteractif(donnees) {
         let ctx = document.getElementById('graphiqueAnalyse').getContext('2d');
-        
-        // Destruction de l'ancien graphique s'il existe pour éviter les superpositions visuelles
         if (monGraphique !== null) { monGraphique.destroy(); }
 
+        let elementSelectionne = document.getElementById('selectElement').value;
         let labels = donnees.map(d => d.periode);
-
-        monGraphique = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: '#ef5350' },
-                    { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: '#ffa726' },
-                    { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: '#66bb6a' },
-                    { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: '#29b6f6' },
-                    { label: '🥖 Pain (kg)', data: donnees.map(d => d.pain), backgroundColor: '#caa43b' },
-                    { label: '🍏 Fruits (kg)', data: donnees.map(d => d.fruits), backgroundColor: '#9ccc65' },
-                    { label: '📦 Emballages (kg)', data: donnees.map(d => d.emb), backgroundColor: '#8d6e63' },
-                    { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: '#78909c' },
-                    { label: '🧻 Serviettes', data: donnees.map(d => d.serv), backgroundColor: '#ab47bc' }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
-                },
-                scales: { 
-                    y: { beginAtZero: true, title: { display: true, text: 'Quantités déclarées' } } 
-                }
-            }
-        });
-    }
-</script>
-
-</body>
-</html>
+        
+        // Configuration de toutes les séries possibles
+        let toutesLesSeries = {
+            vRouge: { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: '#ef5350' },
+            vBlanche: { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: '#ffa726' },
+            veget: { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: '#66bb6a' },
+            poisson: { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: '#29b6f6' },
+            pain: { label: '🥖 Pain (kg)', data: donnees.map(d => d.pain), backgroundColor: '#caa43b' },
+            fruits: { label: '🍏 Fruits (kg)', data: donnees.map(d => d.fruits), backgroundColor: '#9ccc65' },
+            emb: { label: '📦 Emballages (kg)', data: donnees.map(d => d.emb), backgroundColor: '#8d6e63' },
+            dechetsAlim: { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: '#78909c' },
+            serviettes: { label: '🧻 Serviettes', data: donnees.map(d => d.serv), backgroundColor: '#ab47
