@@ -1,30 +1,106 @@
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("CANTINE GIONO");
-  var params = JSON.parse(e.postData.contents);
-  
-  // On cherche si la période (Lundi, Sept, etc.) existe déjà
-  var data = sheet.getDataRange().getValues();
-  var rowToUpdate = -1;
-  
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == params.periode) {
-      rowToUpdate = i + 1; // +1 car les lignes Sheets commencent à 1
-      break;
-    }
-  }
-  
-  // Si elle existe, on met à jour, sinon on crée une nouvelle ligne
-  if (rowToUpdate != -1) {
-    sheet.getRange(rowToUpdate, 2, 1, 9).setValues([[
-      params.vRouge, params.vBlanche, params.veget, params.poisson,
-      params.pain, params.fruits, params.emb, params.dechets, params.serv
-    ]]);
-  } else {
-    sheet.appendRow([
-      params.periode, params.vRouge, params.vBlanche, params.veget, params.poisson,
-      params.pain, params.fruits, params.emb, params.dechets, params.serv
-    ]);
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify({"status":"success"})).setMimeType(ContentService.MimeType.JSON);
-}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi ODD - Collège Vaucluse (Cantine Giono)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 950px; width: 100%; }
+        h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
+        
+        .controls-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 25px; background: #f1f8e9; padding: 15px; border-radius: 10px; border: 1px solid #c8e6c9; }
+        .control-group { display: flex; flex-direction: column; align-items: center; }
+        .controls-box label { font-weight: bold; color: #2e7d32; margin-bottom: 5px; font-size: 0.9rem; }
+        .controls-box select { padding: 8px 15px; border-radius: 5px; border: 1px solid #2e7d32; font-weight: bold; cursor: pointer; min-width: 200px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.8rem; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #2e7d32; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        
+        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 420px; }
+        .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 20px auto 0 auto; }
+        .btn-refresh:hover { background-color: #01579b; }
+        
+        .section-titre { margin-top: 25px; padding-bottom: 5px; border-bottom: 2px solid #2e7d32; color: #2e7d32; font-size: 1.1rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Tableau de Bord Interactif - Cantine Giono</h1>
+    <p class="subtitle">Défi Carbone Haut Vaucluse — Données stockées sur Google Sheets</p>
+    
+    <div id="loading" class="loading-box">🔄 Connexion au stockage Google Sheets et récupération des données...</div>
+
+    <div class="controls-box">
+        <div class="control-group">
+            <label>1️⃣ Choisir la vue globale :</label>
+            <select id="selectVue" onchange="gererChangementVue()">
+                <option value="jours">📅 Affichage par Jours (Semaine)</option>
+                <option value="mois">📆 Affichage par Mois (Année)</option>
+            </select>
+        </div>
+        
+        <div class="control-group" id="zoneFiltrePrecis">
+            <label>2️⃣ Sélectionner l'élément à afficher :</label>
+            <select id="selectElement" onchange="filtrerEtAfficher()">
+                </select>
+        </div>
+    </div>
+
+    <div class="section-titre">📈 Données lues depuis le Google Sheets</div>
+    <div style="overflow-x: auto;">
+        <table id="tableauRecap">
+            <thead>
+                <tr>
+                    <th>Période</th>
+                    <th>🔴 V. Rouge</th>
+                    <th>🍗 V. Blanche</th>
+                    <th>🌱 Végétarien</th>
+                    <th>🐟 Poissons</th>
+                    <th>🥖 Pain</th>
+                    <th>🍏 Fruits</th>
+                    <th>📦 Emballages</th>
+                    <th>🗑️ Déchets Alim.</th>
+                    <th>🧻 Serviettes</th>
+                </tr>
+            </thead>
+            <tbody id="corpsTableau">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="section-titre">📊 Graphique d'Analyse Sélectionné</div>
+    <div class="chart-container">
+        <canvas id="graphiqueAnalyse"></canvas>
+    </div>
+
+    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Recharger depuis le Sheets</button>
+</div>
+
+<script>
+    // Identifiant de ton NOUVEAU lien Google Sheets de stockage
+    const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
+    const sheetName = "CANTINE GIONO"; 
+    const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+    const listesJours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
+    const listesMois = ["Sept", "Oct", "Nov", "Dec", "Janv", "Fev", "Mars", "Avril", "Mai", "Juin"];
+
+    let donneesGlobalesBrutes = [];
+    let monGraphique = null;
+
+    window.onload = chargerDonneesGoogleSheets;
+
+    // Étape 1 : Télécharger le fichier de stockage Excel
+    function chargerDonneesGoogleSheets() {
+        document.getElementById('loading').style.display = "block";
+        
+        fetch(urlCSV)
+            .then(response
