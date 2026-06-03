@@ -142,11 +142,11 @@
 </div>
 
 <script>
-    // METS TON LIEN APPS SCRIPT CI-DESSOUS (OBTENU À L'ÉTAPE 1)
-    const scriptURL = "METS_ICI_TON_LIEN_COPIE_A_L_ETAPE_1";
+    // METS TON LIEN APPS SCRIPT CI-DESSOUS
+    const scriptURL = "https://script.google.com/u/0/home/projects/1vd9eecLzy6KJzrhrt8efOqYsiek_CuRVYlV7Ka9n2P6dTEJZCfR2o6pp/edit";
 
     const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
-    const sheetName = "CANTINE GIONO"; 
+    const sheetName = "Cantine Mari"; 
     const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
     const listesJours = ["Lundi", "Mardi", "Jeudi", "Vendredi"];
@@ -162,7 +162,6 @@
         document.getElementById('loading').style.display = "block";
         document.getElementById('loading').innerHTML = "⏳ Enregistrement des données dans l'Excel en cours...";
 
-        // Création du paquet de données à envoyer
         let formData = new URLSearchParams();
         formData.append("periode", document.getElementById("saisiePeriode").value);
         formData.append("vRouge", document.getElementById("saisieVRouge").value);
@@ -181,12 +180,11 @@
         })
         .then(response => {
             alert("✅ Données enregistrées avec succès dans Google Sheets !");
-            // On recharge les données pour mettre à jour le tableau et le graphique sur le site
             setTimeout(chargerDonneesGoogleSheets, 1500);
         })
         .catch(error => {
             console.error(error);
-            alert("❌ Erreur lors de l'enregistrement. Vérifie l'étape 1 !");
+            alert("❌ Erreur lors de l'enregistrement. Vérifie la configuration !");
             document.getElementById('loading').style.display = "none";
         });
     }
