@@ -7,55 +7,125 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #e8f5e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 900px; width: 100%; }
-        h1, h2 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 20px; }
+        .container { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1000px; width: 100%; }
+        h1 { text-align: center; color: #2e7d32; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-top: 0; font-size: 0.9rem; margin-bottom: 25px; }
         
         .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; font-size: 0.8rem; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        /* ZONE DE SAISIE POUR LES ECO-DELEGUES */
+        .form-saisie { background: #ffffff; border: 2px dashed #4caf50; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        .form-saisie h3 { margin-top: 0; color: #2e7d32; text-align: center; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-weight: bold; font-size: 0.85rem; color: #333; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; }
+        .btn-submit { background-color: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
+        .btn-submit:hover { background-color: #1b5e20; }
+
+        /* Zone de sélection d'origine style vert/bleu */
+        .selection-bloc { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; border-top: 2px solid #eee; padding-top: 20px; }
+        .select-box { background: #f1f8e9; padding: 12px; border-radius: 8px; border: 1px solid #c5e1a5; display: flex; flex-direction: column; gap: 5px; }
+        .select-box span { font-weight: bold; font-size: 0.85rem; }
+        .select-box span.badge-blue { color: #ffffff; background: #0288d1; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; cursor: pointer; min-width: 200px; }
+        
+        /* Tableau vert d'origine */
+        .table-title { font-size: 1rem; color: #2e7d32; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; font-size: 0.85rem; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background-color: #2e7d32; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        .header-row th { background-color: #4caf50; font-size: 0.8rem; padding: 6px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
         
-        .chart-container { margin-top: 30px; position: relative; width: 100%; height: 380px; }
-        .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 20px auto 0 auto; }
+        .chart-container { position: relative; width: 100%; height: 380px; margin-top: 20px; }
+        .btn-refresh { background-color: #0288d1; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; display: block; margin: 25px auto 0 auto; }
         .btn-refresh:hover { background-color: #01579b; }
-        
-        .section-titre { margin-top: 25px; padding-bottom: 5px; border-bottom: 2px solid #2e7d32; color: #2e7d32; font-size: 1.1rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Suivi Complet Consommations & Déchets</h1>
+    <h1>📊 Suivi Consommations & Déchets</h1>
     <p class="subtitle">Défi Carbone Haut Vaucluse — Cantine Giono</p>
     
-    <div id="loading" class="loading-box">🔄 Connexion au nouveau Google Sheets...</div>
+    <div id="loading" class="loading-box">🔄 Connexion au Google Sheets...</div>
 
-    <div style="text-align: center; margin-bottom: 20px; background: #f1f8e9; padding: 12px; border-radius: 8px;">
-        <label style="font-weight: bold;">📅 Sélectionner la vue temporelle : </label>
-        <select id="selectFiltre" onchange="traiterEtAfficherDonnees()" style="padding: 6px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            <option value="jours">Affichage par Jours (Semaine)</option>
-            <option value="mois">Affichage par Mois (Année)</option>
-        </select>
+    <div class="form-saisie">
+        <h3>✍️ Espace de Saisie (Réservé aux Éco-Délégués)</h3>
+        <form id="formCantine" onsubmit="envoyerDonnees(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Période à remplir :</label>
+                    <select id="saisiePeriode" required>
+                        <option value="Lundi">Lundi</option>
+                        <option value="Mardi">Mardi</option>
+                        <option value="Jeudi">Jeudi</option>
+                        <option value="Vendredi">Vendredi</option>
+                        <option value="Sept">Septembre (Sept)</option>
+                        <option value="Oct">Octobre (Oct)</option>
+                        <option value="Nov">Novembre (Nov)</option>
+                        <option value="Dec">Décembre (Dec)</option>
+                        <option value="Janv">Janvier (Janv)</option>
+                        <option value="Fev">Février (Fev)</option>
+                        <option value="Mars">Mars (Mars)</option>
+                        <option value="Avril">Avril (Avril)</option>
+                        <option value="Mai">Mai (Mai)</option>
+                        <option value="Juin">Juin (Juin)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>🔴 Viande Rouge :</label><input type="number" id="saisieVRouge" value="0" min="0"></div>
+                <div class="form-group"><label>🍗 Viande Blanche :</label><input type="number" id="saisieVBlanche" value="0" min="0"></div>
+                <div class="form-group"><label>🌱 Végétarien :</label><input type="number" id="saisieVeget" value="0" min="0"></div>
+                <div class="form-group"><label>🐟 Poissons :</label><input type="number" id="saisiePoisson" value="0" min="0"></div>
+                <div class="form-group"><label>🥖 Pain (kg) :</label><input type="number" id="saisiePain" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>🍏 Fruits (kg) :</label><input type="number" id="saisieFruits" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>📦 Emballages (kg) :</label><input type="number" id="saisieEmb" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>🗑️ Déchets Alim. (kg) :</label><input type="number" id="saisieDechets" value="0" min="0" step="0.1"></div>
+            </div>
+            <button type="submit" class="btn-submit">💾 Enregistrer les données dans l'Excel</button>
+        </form>
     </div>
 
-    <div class="section-titre">📈 Tableau récapitulatif (Direct Google Sheets)</div>
+    <div class="selection-bloc">
+        <div class="select-box">
+            <label><span><span class="badge-blue">1</span> Choisir la vue globale :</span></label>
+            <select id="selectFiltre" onchange="traiterEtAfficherDonnees()">
+                <option value="jours">Affichage par Jours (Semaine)</option>
+                <option value="mois">Affichage par Mois (Année)</option>
+            </select>
+        </div>
+        
+        <div class="select-box">
+            <label><span><span class="badge-blue">2</span> Sélectionner l'élément à afficher :</span></label>
+            <select id="selectElement" onchange="traiterEtAfficherDonnees()">
+                <option value="all">Tout afficher en même temps</option>
+                <option value="vRouge">🔴 Viande Rouge</option>
+                <option value="vBlanche">🍗 Viande Blanche</option>
+                <option value="veget">🌱 Végétarien</option>
+                <option value="poisson">🐟 Poissons</option>
+                <option value="pain">🥖 Pain</option>
+                <option value="fruits">🍏 Fruits</option>
+                <option value="emb">📦 Emballages</option>
+                <option value="dechets">🗑️ Déchets Alimentaires</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-title">📄 Données lues depuis le Google Sheets</div>
     <div style="overflow-x: auto;">
         <table id="tableauRecap">
             <thead>
-                <tr>
+                <tr class="header-row">
                     <th>Période</th>
-                    <th>V. Rouge</th>
-                    <th>V. Blanche</th>
-                    <th>Végétarien</th>
-                    <th>Poissons</th>
-                    <th>Pain</th>
-                    <th>Fruits</th>
-                    <th>Emballages</th>
-                    <th>Déchets Alim.</th>
-                    <th>Serviettes</th>
+                    <th>🔴 V. Rouge</th>
+                    <th>🍗 V. Blanche</th>
+                    <th>🌱 Végétarien</th>
+                    <th>🐟 Poissons</th>
+                    <th>🥖 Pain</th>
+                    <th>🍏 Fruits</th>
+                    <th>📦 Emballages</th>
+                    <th>🗑️ Déchets Alim.</th>
                 </tr>
             </thead>
             <tbody id="corpsTableau">
@@ -63,16 +133,18 @@
         </table>
     </div>
 
-    <div class="section-titre">📊 Graphique d'Analyse global</div>
+    <div class="table-title">📊 Graphique d'Analyse Sélectionné</div>
     <div class="chart-container">
         <canvas id="graphiqueAnalyse"></canvas>
     </div>
 
-    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Actualiser les données</button>
+    <button class="btn-refresh" onclick="chargerDonneesGoogleSheets()">🔄 Recharger depuis le Sheets</button>
 </div>
 
 <script>
-    // Identifiant de ton NOUVEAU Google Sheets !
+    // METS TON LIEN APPS SCRIPT CI-DESSOUS (OBTENU À L'ÉTAPE 1)
+    const scriptURL = "METS_ICI_TON_LIEN_COPIE_A_L_ETAPE_1";
+
     const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
     const sheetName = "CANTINE GIONO"; 
     const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
@@ -85,9 +157,43 @@
 
     window.onload = chargerDonneesGoogleSheets;
 
+    function envoyerDonnees(e) {
+        e.preventDefault();
+        document.getElementById('loading').style.display = "block";
+        document.getElementById('loading').innerHTML = "⏳ Enregistrement des données dans l'Excel en cours...";
+
+        // Création du paquet de données à envoyer
+        let formData = new URLSearchParams();
+        formData.append("periode", document.getElementById("saisiePeriode").value);
+        formData.append("vRouge", document.getElementById("saisieVRouge").value);
+        formData.append("vBlanche", document.getElementById("saisieVBlanche").value);
+        formData.append("veget", document.getElementById("saisieVeget").value);
+        formData.append("poisson", document.getElementById("saisiePoisson").value);
+        formData.append("pain", document.getElementById("saisiePain").value);
+        formData.append("fruits", document.getElementById("saisieFruits").value);
+        formData.append("emb", document.getElementById("saisieEmb").value);
+        formData.append("dechets", document.getElementById("saisieDechets").value);
+
+        fetch(scriptURL, {
+            method: "POST",
+            body: formData,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        })
+        .then(response => {
+            alert("✅ Données enregistrées avec succès dans Google Sheets !");
+            // On recharge les données pour mettre à jour le tableau et le graphique sur le site
+            setTimeout(chargerDonneesGoogleSheets, 1500);
+        })
+        .catch(error => {
+            console.error(error);
+            alert("❌ Erreur lors de l'enregistrement. Vérifie l'étape 1 !");
+            document.getElementById('loading').style.display = "none";
+        });
+    }
+
     function chargerDonneesGoogleSheets() {
         document.getElementById('loading').style.display = "block";
-        
+        document.getElementById('loading').innerHTML = "🔄 Connexion au Google Sheets...";
         fetch(urlCSV)
             .then(response => response.text())
             .then(data => {
@@ -95,8 +201,8 @@
                 traiterEtAfficherDonnees();
             })
             .catch(error => {
-                console.error("Erreur :", error);
-                document.getElementById('loading').innerHTML = "❌ Erreur. Vérifie le partage du fichier Excel (Tous les utilisateurs disposant du lien) !";
+                console.error(error);
+                document.getElementById('loading').innerHTML = "❌ Erreur de liaison Excel.";
             });
     }
 
@@ -106,23 +212,21 @@
 
         for (let i = 1; i < lignes.length; i++) {
             if (lignes[i].trim() === "") continue;
-            
             let cellules = lignes[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
             
-            if (cellules.length >= 10) {
-                let periode = cellules[0]; // Col A
-                let vRouge = parseFloat(cellules[1]) || 0;  // Col B
-                let vBlanche = parseFloat(cellules[2]) || 0; // Col C
-                let veget = parseFloat(cellules[3]) || 0;    // Col D
-                let poisson = parseFloat(cellules[4]) || 0;  // Col E
-                let pain = parseFloat(cellules[5]) || 0;     // Col F
-                let fruits = parseFloat(cellules[6]) || 0;   // Col G
-                let emb = parseFloat(cellules[7]) || 0;      // Col H
-                let dechets = parseFloat(cellules[8]) || 0;  // Col I
-                let serv = parseFloat(cellules[9]) || 0;     // Col J
+            if (cellules.length >= 9) {
+                let periode = cellules[0]; 
+                let vRouge = parseFloat(cellules[1]) || 0;
+                let vBlanche = parseFloat(cellules[2]) || 0;
+                let veget = parseFloat(cellules[3]) || 0;
+                let poisson = parseFloat(cellules[4]) || 0;
+                let pain = parseFloat(cellules[5]) || 0;
+                let fruits = parseFloat(cellules[6]) || 0;
+                let emb = parseFloat(cellules[7]) || 0;
+                let dechets = parseFloat(cellules[8]) || 0;
 
                 if (periode) {
-                    donneesGlobalesBrutes[periode] = { vRouge, vBlanche, veget, poisson, pain, fruits, emb, dechets, serv };
+                    donneesGlobalesBrutes[periode] = { vRouge, vBlanche, veget, poisson, pain, fruits, emb, dechets };
                 }
             }
         }
@@ -130,16 +234,16 @@
 
     function traiterEtAfficherDonnees() {
         document.getElementById('loading').style.display = "none";
-        let filtre = document.getElementById('selectFiltre').value;
+        let filtrePariode = document.getElementById('selectFiltre').value;
+        let filtreElement = document.getElementById('selectElement').value;
         let corps = document.getElementById('corpsTableau');
         corps.innerHTML = "";
         
-        let periodesAffichees = (filtre === "jours") ? listesJours : listesMois;
+        let periodesAffichees = (filtrePariode === "jours") ? listesJours : listesMois;
         let donneesPourGraphique = [];
 
         periodesAffichees.forEach(p => {
-            let d = donneesGlobalesBrutes[p] || { vRouge: 0, vBlanche: 0, veget: 0, poisson: 0, pain: 0, fruits: 0, emb: 0, dechets: 0, serv: 0 };
-            
+            let d = donneesGlobalesBrutes[p] || { vRouge: 0, vBlanche: 0, veget: 0, poisson: 0, pain: 0, fruits: 0, emb: 0, dechets: 0 };
             donneesPourGraphique.push({ periode: p, ...d });
 
             corps.innerHTML += `
@@ -153,39 +257,43 @@
                     <td>${d.fruits} kg</td>
                     <td>${d.emb} kg</td>
                     <td>${d.dechets.toFixed(1)} kg</td>
-                    <td>${d.serv.toFixed(1)} kg</td>
                 </tr>`;
         });
 
-        genererGraphique(donneesPourGraphique);
+        genererGraphique(donneesPourGraphique, filtreElement);
     }
 
-    function genererGraphique(donnees) {
+    function genererGraphique(donnees, elementFiltre) {
         let ctx = document.getElementById('graphiqueAnalyse').getContext('2d');
         if (monGraphique !== null) { monGraphique.destroy(); }
 
         let labels = donnees.map(d => d.periode);
+        
+        let tousLesDatasets = {
+            vRouge: { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: '#ef5350' },
+            vBlanche: { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: '#ffa726' },
+            veget: { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: '#66bb6a' },
+            poisson: { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: '#29b6f6' },
+            pain: { label: '🥖 Pain (kg)', data: donnees.map(d => d.pain), backgroundColor: '#caa43b' },
+            fruits: { label: '🍏 Fruits (kg)', data: donnees.map(d => d.fruits), backgroundColor: '#9ccc65' },
+            emb: { label: '📦 Emballages (kg)', data: donnees.map(d => d.emb), backgroundColor: '#8d6e63' },
+            dechets: { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: '#78909c' }
+        };
+
+        let datasetsAffiches = [];
+        if (elementFiltre === "all") {
+            datasetsAffiches = Object.values(tousLesDatasets); 
+        } else {
+            datasetsAffiches = [tousLesDatasets[elementFiltre]]; 
+        }
 
         monGraphique = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: '🔴 V. Rouge', data: donnees.map(d => d.vRouge), backgroundColor: 'rgba(239, 83, 80, 0.75)' },
-                    { label: '🍗 V. Blanche', data: donnees.map(d => d.vBlanche), backgroundColor: 'rgba(255, 167, 38, 0.75)' },
-                    { label: '🌱 Végétarien', data: donnees.map(d => d.veget), backgroundColor: 'rgba(102, 187, 106, 0.75)' },
-                    { label: '🐟 Poissons', data: donnees.map(d => d.poisson), backgroundColor: 'rgba(41, 182, 246, 0.75)' },
-                    { label: '🥖 Pain (kg)', data: donnees.map(d => d.pain), backgroundColor: 'rgba(212, 172, 13, 0.75)' },
-                    { label: '🍏 Fruits (kg)', data: donnees.map(d => d.fruits), backgroundColor: 'rgba(139, 195, 74, 0.75)' },
-                    { label: '📦 Emballages (kg)', data: donnees.map(d => d.emb), backgroundColor: 'rgba(141, 110, 99, 0.75)' },
-                    { label: '🗑️ Déchets Alim.', data: donnees.map(d => d.dechets), backgroundColor: 'rgba(120, 144, 156, 0.75)' },
-                    { label: '🧻 Serviettes', data: donnees.map(d => d.serv), backgroundColor: 'rgba(171, 71, 188, 0.75)' }
-                ]
-            },
+            data: { labels: labels, datasets: datasetsAffiches },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, title: { display: true, text: 'Quantités' } } }
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
