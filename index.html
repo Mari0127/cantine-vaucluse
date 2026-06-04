@@ -13,12 +13,24 @@
         
         .loading-box { background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         
-        .selection-bloc { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        /* ZONE DE SAISIE POUR LES ECO-DELEGUES */
+        .form-saisie { background: #ffffff; border: 2px dashed #4caf50; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        .form-saisie h3 { margin-top: 0; color: #2e7d32; text-align: center; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-weight: bold; font-size: 0.85rem; color: #333; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; }
+        .btn-submit { background-color: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
+        .btn-submit:hover { background-color: #1b5e20; }
+
+        /* Zone de sélection d'origine style vert/bleu */
+        .selection-bloc { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; border-top: 2px solid #eee; padding-top: 20px; }
         .select-box { background: #f1f8e9; padding: 12px; border-radius: 8px; border: 1px solid #c5e1a5; display: flex; flex-direction: column; gap: 5px; }
         .select-box span { font-weight: bold; font-size: 0.85rem; }
         .select-box span.badge-blue { color: #ffffff; background: #0288d1; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
         select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; cursor: pointer; min-width: 200px; }
         
+        /* Tableau vert d'origine */
         .table-title { font-size: 1rem; color: #2e7d32; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; font-size: 0.85rem; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
@@ -38,6 +50,42 @@
     <p class="subtitle">Défi Carbone Haut Vaucluse — Cantine Giono</p>
     
     <div id="loading" class="loading-box">🔄 Connexion au Google Sheets...</div>
+
+    <div class="form-saisie">
+        <h3>✍️ Espace de Saisie (Réservé aux Éco-Délégués)</h3>
+        <form id="formCantine" onsubmit="envoyerDonnees(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Période à remplir :</label>
+                    <select id="saisiePeriode" required>
+                        <option value="Lundi">Lundi</option>
+                        <option value="Mardi">Mardi</option>
+                        <option value="Jeudi">Jeudi</option>
+                        <option value="Vendredi">Vendredi</option>
+                        <option value="Sept">Septembre (Sept)</option>
+                        <option value="Oct">Octobre (Oct)</option>
+                        <option value="Nov">Novembre (Nov)</option>
+                        <option value="Dec">Décembre (Dec)</option>
+                        <option value="Janv">Janvier (Janv)</option>
+                        <option value="Fev">Février (Fev)</option>
+                        <option value="Mars">Mars (Mars)</option>
+                        <option value="Avril">Avril (Avril)</option>
+                        <option value="Mai">Mai (Mai)</option>
+                        <option value="Juin">Juin (Juin)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>🔴 Viande Rouge :</label><input type="number" id="saisieVRouge" value="0" min="0"></div>
+                <div class="form-group"><label>🍗 Viande Blanche :</label><input type="number" id="saisieVBlanche" value="0" min="0"></div>
+                <div class="form-group"><label>🌱 Végétarien :</label><input type="number" id="saisieVeget" value="0" min="0"></div>
+                <div class="form-group"><label>🐟 Poissons :</label><input type="number" id="saisiePoisson" value="0" min="0"></div>
+                <div class="form-group"><label>🥖 Pain (kg) :</label><input type="number" id="saisiePain" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>🍏 Fruits (kg) :</label><input type="number" id="saisieFruits" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>📦 Emballages (kg) :</label><input type="number" id="saisieEmb" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>🗑️ Déchets Alim. (kg) :</label><input type="number" id="saisieDechets" value="0" min="0" step="0.1"></div>
+            </div>
+            <button type="submit" class="btn-submit">💾 Enregistrer les données dans l'Excel</button>
+        </form>
+    </div>
 
     <div class="selection-bloc">
         <div class="select-box">
@@ -94,6 +142,9 @@
 </div>
 
 <script>
+    // METS TON LIEN APPS SCRIPT CI-DESSOUS
+    const scriptURL = "https://script.google.com/u/0/home/projects/1vd9eecLzy6KJzrhrt8efOqYsiek_CuRVYlV7Ka9n2P6dTEJZCfR2o6pp/edit";
+
     const sheetsId = "1LBx4npRIgii_-Uh3lKXNyUmt7R8l27dQrhWHRTzPqj0";
     const sheetName = "Cantine Mari"; 
     const urlCSV = `https://docs.google.com/spreadsheets/d/${sheetsId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
@@ -106,8 +157,41 @@
 
     window.onload = chargerDonneesGoogleSheets;
 
+    function envoyerDonnees(e) {
+        e.preventDefault();
+        document.getElementById('loading').style.display = "block";
+        document.getElementById('loading').innerHTML = "⏳ Enregistrement des données dans l'Excel en cours...";
+
+        let formData = new URLSearchParams();
+        formData.append("periode", document.getElementById("saisiePeriode").value);
+        formData.append("vRouge", document.getElementById("saisieVRouge").value);
+        formData.append("vBlanche", document.getElementById("saisieVBlanche").value);
+        formData.append("veget", document.getElementById("saisieVeget").value);
+        formData.append("poisson", document.getElementById("saisiePoisson").value);
+        formData.append("pain", document.getElementById("saisiePain").value);
+        formData.append("fruits", document.getElementById("saisieFruits").value);
+        formData.append("emb", document.getElementById("saisieEmb").value);
+        formData.append("dechets", document.getElementById("saisieDechets").value);
+
+        fetch(scriptURL, {
+            method: "POST",
+            body: formData,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        })
+        .then(response => {
+            alert("✅ Données enregistrées avec succès dans Google Sheets !");
+            setTimeout(chargerDonneesGoogleSheets, 1500);
+        })
+        .catch(error => {
+            console.error(error);
+            alert("❌ Erreur lors de l'enregistrement. Vérifie la configuration !");
+            document.getElementById('loading').style.display = "none";
+        });
+    }
+
     function chargerDonneesGoogleSheets() {
         document.getElementById('loading').style.display = "block";
+        document.getElementById('loading').innerHTML = "🔄 Connexion au Google Sheets...";
         fetch(urlCSV)
             .then(response => response.text())
             .then(data => {
